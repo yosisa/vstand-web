@@ -4,20 +4,34 @@
     <meta charset="utf-8"/>
     <title>vstand</title>
     <!-- inject:vendor:css -->
+    <link rel="stylesheet" href="/OnsenUI/build/css/onsenui.css">
+    <link rel="stylesheet" href="/OnsenUI/build/css/onsen-css-components.css">
+    <link rel="stylesheet" href="/OnsenUI/build/css/font_awesome/css/font-awesome.css">
+    <link rel="stylesheet" href="/OnsenUI/build/css/ionicons/css/ionicons.css">
     <!-- endinject -->
     <!-- inject:css -->
     <link rel="stylesheet" href="/css/app.css">
     <!-- endinject -->
   </head>
   <body>
-    <hgroup>
-      <h1>vstand</h1>
-      <h2>Your new AngularJS app is now ready...</h2>
-    </hgroup>
-    <ng-view></ng-view>
+    <ons-navigator>
+      <ons-page ng-controller="RootCtrl">
+	<ons-toolbar>
+          <div class="center">Browse</div>
+        </ons-toolbar>
+
+        <ons-list>
+          <ons-list-item ng-repeat="name in names" modifier="chevron" ng-click="pushPage(name)">
+            <ons-icon icon="folder-o"></ons-icon> {{name}}
+          </ons-list-item>
+        </ons-list>
+      </ons-page>
+    </ons-navigator>
+
     <!-- inject:vendor:js -->
     <script src="/angular/angular.js"></script>
     <script src="/angular-route/angular-route.js"></script>
+    <script src="/OnsenUI/build/js/onsenui.js"></script>
     <!-- endinject -->
     <!-- inject:js -->
     <script src="/vstand-templates.js"></script>

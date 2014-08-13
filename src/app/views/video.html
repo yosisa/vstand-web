@@ -1,0 +1,16 @@
+<ons-page ng-controller="VideoCtrl">
+  <ons-toolbar>
+    <div class="left">
+      <ons-back-button>Back</ons-back-button>
+    </div>
+    <div class="center">{{title}}</div>
+  </ons-toolbar>
+
+  <ons-row align="center">
+    <ons-col>
+      <video controls>
+        <source ng-src="{{videoSrc}}">
+      </video>
+    </ons-col>
+  </ons-row>
+</ons-page>

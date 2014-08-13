@@ -1,0 +1,17 @@
+<ons-page ng-controller="BrowseCtrl">
+  <ons-toolbar>
+    <div class="left">
+      <ons-back-button>Back</ons-back-button>
+    </div>
+    <div class="center">{{title}}</div>
+  </ons-toolbar>
+
+  <ons-list>
+    <ons-list-item ng-repeat="item in dirs" modifier="chevron" ng-click="pushPage(item)">
+      <ons-icon icon="folder-o"></ons-icon> {{item.name}}
+    </ons-list-item>
+    <ons-list-item ng-repeat="item in files" modifier="chevron" ng-click="pushPage(item)">
+      <ons-icon icon="file-video-o"></ons-icon> {{item.name}}
+    </ons-list-item>
+  </ons-list>
+</ons-page>
