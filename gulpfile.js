@@ -11,7 +11,8 @@ var gulp = require('gulp'),
     lazypipe = require('lazypipe'),
     stylish = require('jshint-stylish'),
     bower = require('./bower'),
-    isWatching = false;
+    url = require('url'),
+    proxy = require('proxy-middleware');
 
 var htmlminOpts = {
   removeComments: true,
@@ -31,7 +32,7 @@ gulp.task('jshint', function () {
   ])
     .pipe(g.cached('jshint'))
     .pipe(jshint('./.jshintrc'))
-    .pipe(livereload());
+    .pipe(g.connect.reload());
 });
 
 /**
@@ -49,7 +50,7 @@ gulp.task('styles', ['clean-css'], function () {
     .pipe(g.stylus({use: [require('nib')()]}))
     .pipe(gulp.dest('./.tmp/css/'))
     .pipe(g.cached('built-css'))
-    .pipe(livereload());
+    .pipe(g.connect.reload());
 });
 
 gulp.task('styles-dist', ['styles'], function () {
@@ -71,7 +72,9 @@ gulp.task('coffee', function () {
     './src/app/**/*.coffee'
   ])
     .pipe(g.coffee())
-    .pipe(gulp.dest('./.tmp/src/app'));
+    .pipe(gulp.dest('./.tmp/src/app'))
+    .pipe(g.cached('built-coffee'))
+    .pipe(g.connect.reload());
 });
 
 /**
@@ -99,7 +102,8 @@ gulp.task('vendors', function () {
   var bowerStream = gulp.src(bowerFiles());
   return es.merge(
     bowerStream.pipe(g.filter('**/*.css')).pipe(dist('css', 'vendors')),
-    bowerStream.pipe(g.filter('**/*.js')).pipe(dist('js', 'vendors'))
+    bowerStream.pipe(g.filter('**/*.js')).pipe(dist('js', 'vendors')),
+    bowerStream.pipe(g.filter('**/*.woff')).pipe(gulp.dest('./dist/fonts'))
   );
 });
 
@@ -117,7 +121,7 @@ function index () {
     .pipe(gulp.dest('./src/app/'))
     .pipe(g.embedlr())
     .pipe(gulp.dest('./.tmp/'))
-    .pipe(livereload());
+    .pipe(g.connect.reload());
 }
 
 /**
@@ -133,7 +137,7 @@ gulp.task('assets', function () {
  */
 gulp.task('dist', ['vendors', 'assets', 'styles-dist', 'scripts-dist'], function () {
   return gulp.src('./src/app/index.html')
-    .pipe(g.inject(gulp.src('./dist/vendors.min.{js,css}'), {ignorePath: 'dist', starttag: '<!-- inject:vendor:{{ext}} -->'}))
+    .pipe(g.inject(gulp.src('./dist/vendors.{js,min.css}'), {ignorePath: 'dist', starttag: '<!-- inject:vendor:{{ext}} -->'}))
     .pipe(g.inject(gulp.src('./dist/' + bower.name + '.min.{js,css}'), {ignorePath: 'dist'}))
     .pipe(g.htmlmin(htmlminOpts))
     .pipe(gulp.dest('./dist/'));
@@ -142,19 +146,34 @@ gulp.task('dist', ['vendors', 'assets', 'styles-dist', 'scripts-dist'], function
 /**
  * Static file server
  */
-gulp.task('statics', g.serve({
-  port: 3000,
-  root: ['./.tmp', './.tmp/src/app', './src/app', './bower_components']
-}));
+gulp.task('statics', function() {
+  g.connect.server({
+    port: 3000,
+    root: ['./.tmp', './.tmp/src/app', './src/app', './bower_components'],
+    livereload: true,
+    middleware: function() {
+      return [
+        (function() {
+          var options = url.parse('http://localhost:8000/api');
+          options.route = '/api';
+          return proxy(options);
+        })(),
+        (function() {
+          var options = url.parse('http://localhost:8000/video');
+          options.route = '/video';
+          return proxy(options);
+        })()
+      ];
+    }
+  });
+});
 
 /**
  * Watch
  */
 gulp.task('serve', ['watch']);
 gulp.task('watch', ['statics', 'default'], function () {
-  isWatching = true;
-  // Initiate livereload server:
-  g.livereload.listen();
+  gulp.watch('./src/app/**/*.coffee', ['coffee']);
   gulp.watch('./src/app/**/*.js', ['jshint']).on('change', function (evt) {
     if (evt.type !== 'changed') {
       gulp.start('index');
@@ -256,12 +275,12 @@ function buildTemplates () {
   return lazypipe()
     .pipe(g.ngHtml2js, {
       moduleName: bower.name + '-templates',
-      prefix: '/' + bower.name + '/',
+      prefix: '/',
       stripPrefix: '/src/app'
     })
     .pipe(g.concat, bower.name + '-templates.js')
     .pipe(gulp.dest, './.tmp')
-    .pipe(livereload)();
+    .pipe(g.connect.reload)();
 }
 
 /**
@@ -282,14 +301,6 @@ function dist (ext, name, opt) {
     .pipe(ext === 'js' ? g.uglify : g.minifyCss)
     .pipe(g.rename, name + '.min.' + ext)
     .pipe(gulp.dest, './dist')();
-}
-
-/**
- * Livereload (or noop if not run by watch)
- */
-function livereload () {
-  return lazypipe()
-    .pipe(isWatching ? g.livereload : noop)();
 }
 
 /**
