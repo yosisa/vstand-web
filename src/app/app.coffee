@@ -1,8 +1,63 @@
 angular.module('vstand', [
   'ngRoute'
   'vstand-templates'
-  'onsen.directives'
+  'ionic'
 ])
+
+  .config [
+    '$stateProvider'
+    '$urlRouterProvider'
+    ($stateProvider, $urlRouterProvider) ->
+      $stateProvider
+        .state 'browse',
+          url: '/browse'
+          abstract: true
+          templateUrl: '/views/browse.html'
+          controller: 'MainCtrl'
+
+        .state 'browse.root',
+          url: ''
+          views:
+            'main':
+              templateUrl: '/views/browse.root.html'
+              controller: 'RootCtrl'
+
+        .state 'browse.tree',
+          url: '/:name/*path'
+          views:
+            'main':
+              templateUrl: '/views/browse.tree.html'
+              controller: 'BrowseCtrl'
+
+        .state 'status',
+          url: '/status'
+          templateUrl: '/views/status.html'
+          controller: 'RootCtrl'
+
+        $urlRouterProvider.otherwise '/browse'
+    ]
+
+angular.module 'vstand'
+  .controller 'MainCtrl', [
+    '$scope'
+    '$ionicModal'
+    ($scope, $ionicModal) ->
+      $ionicModal.fromTemplateUrl '/views/activity.html',
+        scope: $scope
+        animation: 'slide-in-up'
+      .then (modal) ->
+        $scope.modal = modal
+
+      $scope.showActivity = ->
+        $scope.activities = ['Item 1', 'Item 2']
+        $scope.modal.show()
+
+      $scope.hideActivity = ->
+        $scope.modal.hide()
+
+      $scope.stop = (index) ->
+        $scope.activities.splice index, 1
+  ]
 
 angular.module 'vstand'
   .controller 'RootCtrl', [
@@ -21,23 +76,20 @@ angular.module 'vstand'
 angular.module 'vstand'
   .controller 'BrowseCtrl', [
     '$scope'
+    '$stateParams'
     '$http'
-    ($scope, $http) ->
-      opts = $scope.ons.navigator.getCurrentPage().options
-      if opts.path
-        index = opts.path.lastIndexOf "/"
-        $scope.title = opts.path[index+1..]
+    ($scope, $stateParams, $http) ->
+      console.log "BrowseCtrl"
+      $scope.name = $stateParams.name
+      if $stateParams.path
+        index = $stateParams.path.lastIndexOf "/"
+        $scope.title = $stateParams.path[index+1..]
       else
-        $scope.title = opts.name
+        $scope.title = $stateParams.name
 
-      $scope.cwd = opts.path || ''
-      $scope.pushPage = (item) ->
-        next = if item.dir then '/views/page1.html' else '/views/video.html'
-        $scope.ons.navigator.pushPage next,
-          name: opts.name, path: "#{$scope.cwd}/#{item.name}"
-
-      path = opts.path || '/'
-      $http.get("/api/browse/#{opts.name}#{path}")
+      $scope.cwd = if $stateParams.path then "/#{$stateParams.path}/" else "/"
+      path = "/#{$stateParams.path}"
+      $http.get("/api/browse/#{$stateParams.name}#{path}")
         .success (data) ->
           $scope.dirs = (x for x in data when x.dir)
           $scope.files = (x for x in data when !x.dir)
@@ -51,5 +103,16 @@ angular.module 'vstand'
       opts = $scope.ons.navigator.getCurrentPage().options
       index = opts.path.lastIndexOf "/"
       $scope.title = opts.path[index+1..]
-      $scope.videoSrc = "/video/stream?path=/#{opts.name}#{opts.path}"
+
+      $scope.cwd = opts.path || ''
+      $scope.pushPage = (item) ->
+        next = if item.dir then '/views/page1.html' else '/views/video.html'
+        $scope.ons.navigator.pushPage next,
+          name: opts.name, path: "#{$scope.cwd}/#{item.name}"
+
+      path = opts.path || '/'
+      $http.get("/api/browse/#{opts.name}#{path}")
+        .success (data) ->
+          $scope.dirs = (x for x in data when x.dir)
+          $scope.files = (x for x in data when !x.dir)
   ]

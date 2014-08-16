@@ -1,0 +1,9 @@
+<ion-view title="Browse">
+  <ion-content class="has-header" ng-controller="RootCtrl">
+    <ion-list>
+      <ion-item class="item-icon-left item-icon-right" ng-repeat="name in names" ng-href="#/browse/{{name}}/" item="name">
+        <i class="icon ion-ios7-folder-outline"></i> {{name}}<i class="icon ion-ios7-arrow-right"></i>
+      </ion-item>
+    </ion-list>
+  </ion-content>
+</ion-view>
