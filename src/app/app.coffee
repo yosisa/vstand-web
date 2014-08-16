@@ -23,11 +23,23 @@ angular.module('vstand', [
               controller: 'RootCtrl'
 
         .state 'browse.tree',
-          url: '/:name/*path'
+          url: '/tree/:name/*path'
           views:
             'main':
               templateUrl: '/views/browse.tree.html'
               controller: 'BrowseCtrl'
+          resolve:
+            item: ['$stateParams', '$http', ($stateParams, $http) ->
+              path = $stateParams.path || ''
+              $http.get "/api/browse/#{$stateParams.name}/#{path}"
+            ]
+
+        .state 'browse.video',
+          url: '/item/:name/*path'
+          views:
+            'main':
+              templateUrl: '/views/video.html'
+              controller: 'VideoCtrl'
 
         .state 'status',
           url: '/status'
@@ -40,8 +52,10 @@ angular.module('vstand', [
 angular.module 'vstand'
   .controller 'MainCtrl', [
     '$scope'
+    '$http'
+    '$timeout'
     '$ionicModal'
-    ($scope, $ionicModal) ->
+    ($scope, $http, $timeout, $ionicModal) ->
       $ionicModal.fromTemplateUrl '/views/activity.html',
         scope: $scope
         animation: 'slide-in-up'
@@ -49,14 +63,22 @@ angular.module 'vstand'
         $scope.modal = modal
 
       $scope.showActivity = ->
-        $scope.activities = ['Item 1', 'Item 2']
+        $http.get '/api/tasks'
+          .success (data) ->
+            $scope.tasks = data
         $scope.modal.show()
 
       $scope.hideActivity = ->
         $scope.modal.hide()
 
-      $scope.stop = (index) ->
-        $scope.activities.splice index, 1
+      $scope.stop = (task) ->
+        $http.delete "/api/tasks/#{task.id}"
+          .success ->
+            $timeout ->
+              $http.get '/api/tasks'
+                .success (data) ->
+                  $scope.tasks = data
+            , 100
   ]
 
 angular.module 'vstand'
@@ -78,8 +100,8 @@ angular.module 'vstand'
     '$scope'
     '$stateParams'
     '$http'
-    ($scope, $stateParams, $http) ->
-      console.log "BrowseCtrl"
+    'item'
+    ($scope, $stateParams, $http, item) ->
       $scope.name = $stateParams.name
       if $stateParams.path
         index = $stateParams.path.lastIndexOf "/"
@@ -87,32 +109,18 @@ angular.module 'vstand'
       else
         $scope.title = $stateParams.name
 
-      $scope.cwd = if $stateParams.path then "/#{$stateParams.path}/" else "/"
-      path = "/#{$stateParams.path}"
-      $http.get("/api/browse/#{$stateParams.name}#{path}")
-        .success (data) ->
-          $scope.dirs = (x for x in data when x.dir)
-          $scope.files = (x for x in data when !x.dir)
+      $scope.cwd = if $stateParams.path then "#{$stateParams.path}/" else ""
+      $scope.dirs = (x for x in item.data when x.dir)
+      $scope.files = (x for x in item.data when !x.dir)
   ]
 
 angular.module 'vstand'
   .controller 'VideoCtrl', [
     '$scope'
+    '$stateParams'
     '$http'
-    ($scope, $http) ->
-      opts = $scope.ons.navigator.getCurrentPage().options
-      index = opts.path.lastIndexOf "/"
-      $scope.title = opts.path[index+1..]
-
-      $scope.cwd = opts.path || ''
-      $scope.pushPage = (item) ->
-        next = if item.dir then '/views/page1.html' else '/views/video.html'
-        $scope.ons.navigator.pushPage next,
-          name: opts.name, path: "#{$scope.cwd}/#{item.name}"
-
-      path = opts.path || '/'
-      $http.get("/api/browse/#{opts.name}#{path}")
-        .success (data) ->
-          $scope.dirs = (x for x in data when x.dir)
-          $scope.files = (x for x in data when !x.dir)
+    ($scope, $stateParams, $http) ->
+      index = $stateParams.path.lastIndexOf "/"
+      $scope.title = $stateParams.path[index+1..]
+      $scope.videoSrc = "/video/stream?path=/#{$stateParams.name}/#{$stateParams.path}"
   ]

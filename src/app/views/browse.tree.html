@@ -1,10 +1,10 @@
 <ion-view title="{{title}}">
   <ion-content class="has-header">
     <ion-list>
-      <ion-item class="item-icon-left item-icon-right" ng-repeat="item in dirs" ng-href="#/browse/{{name}}{{cwd}}{{item.name}}" item="item">
+      <ion-item class="item-icon-left item-icon-right" ng-repeat="item in dirs" ui-sref="browse.tree({path: '{{cwd}}{{item.name}}'})" item="item">
         <i class="icon ion-ios7-folder-outline"></i> {{item.name}}<i class="icon ion-ios7-arrow-right"></i>
       </ion-item>
-      <ion-item class="item-icon-left item-icon-right" ng-repeat="item in files" ng-href="#/browse/{{name}}{{cwd}}{{item.name}}" item="item">
+      <ion-item class="item-icon-left item-icon-right" ng-repeat="item in files" ui-sref="browse.video({name: name, path: '{{cwd}}{{item.name}}'})" item="item">
         <i class="icon ion-ios7-film"></i> {{item.name}}<i class="icon ion-ios7-arrow-right"></i>
       </ion-item>
     </ion-list>

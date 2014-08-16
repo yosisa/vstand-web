@@ -8,9 +8,9 @@
 
   <ion-content>
     <ion-list>
-      <ion-item ng-repeat="activity in activities" item="activity">
-        {{activity}}
-        <ion-option-button class="button-assertive padding" ng-click="stop($index)">Stop</ion-option-button>
+      <ion-item ng-repeat="task in tasks" item="task">
+        {{task.name}}
+        <ion-option-button class="button-assertive padding" ng-click="stop(task)">Stop</ion-option-button>
       </ion-item>
     </ion-list>
   </ion-content>
