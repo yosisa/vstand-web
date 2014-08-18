@@ -40,6 +40,11 @@ angular.module('vstand', [
             'main':
               templateUrl: '/views/video.html'
               controller: 'VideoCtrl'
+          resolve:
+            item: ['$stateParams', '$http', ($stateParams, $http) ->
+              path = $stateParams.path || ''
+              $http.get "/api/browse/#{$stateParams.name}/#{path}"
+            ]
 
         .state 'status',
           url: '/status'
@@ -119,8 +124,13 @@ angular.module 'vstand'
     '$scope'
     '$stateParams'
     '$http'
-    ($scope, $stateParams, $http) ->
+    'item'
+    ($scope, $stateParams, $http, item) ->
       index = $stateParams.path.lastIndexOf "/"
       $scope.title = $stateParams.path[index+1..]
       $scope.videoSrc = "/video/stream?path=/#{$stateParams.name}/#{$stateParams.path}"
+      $scope.id = item.data.id
+
+      $scope.clearCache =  ->
+        $http.delete "/video/#{item.data.id}"
   ]
