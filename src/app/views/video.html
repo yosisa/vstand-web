@@ -1,8 +1,9 @@
 <ion-view title="{{title}}">
   <ion-content class="padding">
-    <div>
+    <div id="video-container">
+      <canvas></canvas>
       <video controls>
-        <source ng-src="{{videoSrc}}">
+        <source ng-src="{{videoSrc}}" type="video/mp4">
       </video>
     </div>
 
