@@ -1,16 +1,15 @@
-<ons-page ng-controller="VideoCtrl">
-  <ons-toolbar>
-    <div class="left">
-      <ons-back-button>Back</ons-back-button>
-    </div>
-    <div class="center">{{title}}</div>
-  </ons-toolbar>
-
-  <ons-row align="center">
-    <ons-col>
+<ion-view title="{{title}}">
+  <ion-content class="padding">
+    <div>
       <video controls>
         <source ng-src="{{videoSrc}}">
       </video>
-    </ons-col>
-  </ons-row>
-</ons-page>
+    </div>
+
+    <div>
+      <button class="button button-light" ng-click="clearCache()">
+        Clear Cache
+      </button>
+    </div>
+  </ion-content>
+</ion-view>

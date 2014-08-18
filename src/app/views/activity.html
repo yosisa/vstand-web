@@ -1,0 +1,17 @@
+<ion-modal-view>
+  <ion-header-bar align-title="center" class="bar-light">
+    <h1 class="title">Activity</h1>
+    <button class="button button-clear button-positive" ng-click="hideActivity()">
+      Done
+    </button>
+  </ion-header-bar>
+
+  <ion-content>
+    <ion-list>
+      <ion-item ng-repeat="task in tasks" item="task">
+        {{task.name}}
+        <ion-option-button class="button-assertive padding" ng-click="stop(task)">Stop</ion-option-button>
+      </ion-item>
+    </ion-list>
+  </ion-content>
+</ion-modal-view>

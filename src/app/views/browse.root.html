@@ -1,0 +1,9 @@
+<ion-view title="Browse">
+  <ion-content>
+    <ion-list>
+      <ion-item class="item-icon-left item-icon-right" ng-repeat="name in names" ui-sref="browse.tree({name: name})" item="name">
+        <i class="icon ion-ios7-folder-outline"></i> {{name}}<i class="icon ion-ios7-arrow-right"></i>
+      </ion-item>
+    </ion-list>
+  </ion-content>
+</ion-view>
